@@ -5,14 +5,19 @@
 
 import UIKit
 import Nuke
+import NukeExtensions
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UITableViewDataSource{
+    
 
-
+    @IBOutlet weak var table: UITableView!
+        
+    var postsArr: [Post] = []
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
         
+        table.dataSource = self
         fetchPosts()
     }
 
@@ -42,7 +47,9 @@ class ViewController: UIViewController {
                 DispatchQueue.main.async { [weak self] in
 
                     let posts = blog.response.posts
-
+                    
+                    self?.postsArr = posts
+                    self?.table.reloadData()
 
                     print("✅ We got \(posts.count) posts!")
                     for post in posts {
@@ -55,5 +62,19 @@ class ViewController: UIViewController {
             }
         }
         session.resume()
+    }
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int{
+        return postsArr.count
+    }
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell{
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! CustomTableViewCell
+        let post = postsArr[indexPath.row]
+        cell.label.text = post.summary
+        if let photo = post.photos.first{
+            let url = photo.originalSize.url
+            //NukeExtensions.loadImage(with: url, into: cell.iconImageView)
+            NukeExtensions.loadImage(with: url, into: cell.iconImageView)
+        }
+        return cell
     }
 }
